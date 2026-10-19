@@ -1,0 +1,20 @@
+{
+  "name": "bytevac",
+  "version": "0.1.0",
+  "description": "An AI robot vacuum for your computer: roams your disk, finds junk, asks before it sucks anything up.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "check": "tsc -p jsconfig.json"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "electron": "^44.9.0",
+    "typescript": "^5.9.0"
+  }
+}

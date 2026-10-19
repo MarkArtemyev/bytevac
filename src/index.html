@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'" />
+    <title>bytevac</title>
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #171a21;
+        --text: #e7e9ee;
+        --muted: #8b92a3;
+        --accent: #5eead4;
+        --danger: #f87171;
+        --line: #262a35;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      header {
+        padding: 16px 20px 0;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+      header h1 { margin: 0; font-size: 20px; }
+      header span { color: var(--muted); }
+
+      /* the floor the robot drives around on */
+      .floor {
+        position: relative;
+        height: 64px;
+        margin: 8px 20px;
+        border-bottom: 2px dashed var(--line);
+        overflow: hidden;
+      }
+      .bot {
+        position: absolute;
+        bottom: 4px;
+        left: 0;
+        font-size: 40px;
+        transition: transform 0.3s;
+      }
+      .busy .bot { animation: roam 6s ease-in-out infinite; }
+      .busy .bot::after {
+        content: "💨";
+        font-size: 20px;
+        position: absolute;
+        left: -22px;
+        bottom: 4px;
+        opacity: 0.7;
+      }
+      @keyframes roam {
+        0% { left: 0; transform: scaleX(1); }
+        45% { left: calc(100% - 48px); transform: scaleX(1); }
+        50% { left: calc(100% - 48px); transform: scaleX(-1); }
+        95% { left: 0; transform: scaleX(-1); }
+        100% { left: 0; transform: scaleX(1); }
+      }
+
+      #log {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .msg { white-space: pre-wrap; max-width: 90%; }
+      .msg.user { align-self: flex-end; background: #1f3a37; padding: 8px 12px; border-radius: 12px; }
+      .msg.text { background: var(--panel); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); }
+      .msg.tool, .msg.thought, .msg.info { color: var(--muted); font-size: 13px; }
+      .msg.thought { font-style: italic; }
+      .msg.error { color: var(--danger); }
+
+      form {
+        display: flex;
+        gap: 8px;
+        padding: 12px 20px 20px;
+        border-top: 1px solid var(--line);
+      }
+      input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+      }
+      button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 0;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--accent);
+        color: #062a26;
+      }
+      button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+      button:disabled { opacity: 0.4; cursor: default; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>bytevac</h1>
+      <span>a robot vacuum for your disk</span>
+    </header>
+    <div class="floor" id="floor"><div class="bot">🤖</div></div>
+    <div id="log"></div>
+    <form id="form">
+      <input id="input" placeholder="Tell bytevac what to clean, or just hit Start" autocomplete="off" />
+      <button type="submit" id="go">Start</button>
+      <button type="button" class="ghost" id="stop" disabled>Stop</button>
+      <button type="button" class="ghost" id="reset" title="Forget this conversation">New</button>
+    </form>
+    <script src="renderer.js"></script>
+  </body>
+</html>
