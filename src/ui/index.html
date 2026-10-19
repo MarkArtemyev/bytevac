@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>bytevac</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="app">
+      <header class="titlebar">
+        <div class="brand">
+          <span class="mark" aria-hidden="true"><span></span></span>
+          <span class="wordmark">bytevac</span>
+          <span class="pill" id="status-pill"><span class="dot"></span><span id="status-pill-text">Docked</span></span>
+        </div>
+        <div class="titlebar-actions">
+          <button class="icon-btn" id="new-btn" title="New session" aria-label="New session"></button>
+          <button class="icon-btn" id="key-btn" title="API key" aria-label="API key"></button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="dock">
+          <section class="card robot-card">
+            <div class="floor" id="floor">
+              <svg class="floor-art" viewBox="0 0 300 220" aria-hidden="true">
+                <defs>
+                  <linearGradient id="trail" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6ef5c6" />
+                    <stop offset="1" stop-color="#9b8cff" />
+                  </linearGradient>
+                  <radialGradient id="halo">
+                    <stop offset="0" stop-color="#6ef5c6" stop-opacity=".35" />
+                    <stop offset="1" stop-color="#6ef5c6" stop-opacity="0" />
+                  </radialGradient>
+                </defs>
+                <g class="rings">
+                  <circle cx="150" cy="110" r="30" />
+                  <circle cx="150" cy="110" r="60" />
+                  <circle cx="150" cy="110" r="92" />
+                </g>
+                <circle class="halo" cx="150" cy="110" r="64" fill="url(#halo)" />
+                <path
+                  class="trail"
+                  d="M150 34 C232 34 262 72 262 110 C262 150 226 186 150 186 C74 186 38 150 38 110 C38 72 68 34 150 34 Z"
+                  stroke="url(#trail)"
+                />
+              </svg>
+              <div class="dust" id="dust" aria-hidden="true"></div>
+              <div class="bot" aria-hidden="true">
+                <svg viewBox="0 0 120 120">
+                  <defs>
+                    <radialGradient id="shell" cx="38%" cy="32%" r="80%">
+                      <stop offset="0" stop-color="#363b4a" />
+                      <stop offset=".55" stop-color="#1a1d26" />
+                      <stop offset="1" stop-color="#0d0f15" />
+                    </radialGradient>
+                    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stop-color="#6ef5c6" />
+                      <stop offset="1" stop-color="#9b8cff" />
+                    </linearGradient>
+                  </defs>
+                  <g class="brush" style="transform-origin: 92px 26px">
+                    <circle cx="92" cy="26" r="3" fill="#2b2f3b" />
+                    <path d="M92 26 L106 20 M92 26 L88 12 M92 26 L80 34" />
+                  </g>
+                  <g class="brush" style="transform-origin: 92px 94px">
+                    <circle cx="92" cy="94" r="3" fill="#2b2f3b" />
+                    <path d="M92 94 L106 100 M92 94 L88 108 M92 94 L80 86" />
+                  </g>
+                  <circle cx="60" cy="60" r="48" fill="url(#shell)" stroke="url(#rim)" stroke-width="2.5" />
+                  <path d="M80 18 A46 46 0 0 1 80 102" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="6" stroke-linecap="round" />
+                  <circle cx="66" cy="60" r="15" fill="#0a0c11" stroke="rgba(255,255,255,.1)" stroke-width="1.5" />
+                  <circle class="eye" cx="66" cy="60" r="5.5" />
+                  <rect x="30" y="52" width="6" height="16" rx="3" fill="rgba(255,255,255,.14)" />
+                </svg>
+              </div>
+            </div>
+            <div class="robot-status">
+              <div class="label">Status</div>
+              <div class="value" id="robot-status">Docked · ready to roam</div>
+            </div>
+          </section>
+
+          <section class="card disk-card">
+            <svg class="gauge" viewBox="0 0 120 120" aria-hidden="true">
+              <defs>
+                <linearGradient id="gauge-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#6ef5c6" />
+                  <stop offset="1" stop-color="#9b8cff" />
+                </linearGradient>
+              </defs>
+              <circle class="track" cx="60" cy="60" r="48" />
+              <circle class="meter" id="gauge-meter" cx="60" cy="60" r="48" stroke="url(#gauge-grad)" />
+            </svg>
+            <div class="gauge-center"><span id="disk-pct">–</span><small>used</small></div>
+            <div class="disk-text">
+              <div class="label">Disk</div>
+              <div class="value" id="disk-free">Measuring…</div>
+              <div class="sub" id="disk-total"></div>
+            </div>
+          </section>
+
+          <div class="stat-row">
+            <section class="card stat">
+              <div class="label">Freed</div>
+              <div class="value gradient-text" id="freed">0 B</div>
+              <div class="sub">this session</div>
+            </section>
+            <section class="card stat">
+              <div class="label">Spots checked</div>
+              <div class="value" id="checked">0</div>
+              <div class="sub">folders &amp; lists</div>
+            </section>
+          </div>
+        </aside>
+
+        <section class="stage">
+          <div class="feed" id="feed">
+            <div class="hero" id="hero">
+              <div class="badge"><span class="spark"></span>AI disk cleaner · runs on Claude</div>
+              <h1>Your disk,<br /><span class="gradient-text">but lighter.</span></h1>
+              <p>bytevac roams your files, sniffs out junk, and asks before it vacuums anything. Everything goes to the Trash, so nothing is gone for good.</p>
+              <div class="suggestions" id="suggestions"></div>
+            </div>
+          </div>
+
+          <form class="composer" id="composer">
+            <textarea id="input" rows="1" placeholder="Tell bytevac where to roam…" autocomplete="off"></textarea>
+            <button type="submit" class="send" id="send" aria-label="Send"></button>
+          </form>
+          <div class="hint"><kbd>Enter</kbd> send <span>·</span> <kbd>Shift</kbd>+<kbd>Enter</kbd> new line <span>·</span> <kbd>Esc</kbd> stop</div>
+        </section>
+      </main>
+    </div>
+
+    <!-- "are you sure?" -->
+    <div class="overlay" id="ask" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+        <div class="sheet-head">
+          <span class="sheet-icon" id="ask-icon"></span>
+          <div>
+            <h2 id="ask-title"></h2>
+            <div class="total" id="ask-total"></div>
+          </div>
+        </div>
+        <p class="reason" id="ask-reason"></p>
+        <ul class="items" id="ask-items"></ul>
+        <p class="footnote" id="ask-foot"></p>
+        <div class="actions">
+          <button class="btn ghost" id="ask-no">Keep it</button>
+          <button class="btn primary" id="ask-yes">Vacuum it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- first run / key settings -->
+    <div class="overlay" id="onboard" hidden>
+      <form class="sheet onboard" id="key-form">
+        <div class="onboard-art" aria-hidden="true"><span class="mark big"><span></span></span></div>
+        <h2>Give bytevac a brain</h2>
+        <p>bytevac uses Claude to tell junk from treasure. Paste an Anthropic API key. It's encrypted on this computer and only ever sent to Anthropic.</p>
+        <div class="field">
+          <input id="key-input" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field-error" id="key-error"></div>
+        <div class="actions">
+          <button type="button" class="btn ghost" id="get-key">Get a key ↗</button>
+          <button type="button" class="btn ghost" id="forget-key" hidden>Forget saved key</button>
+          <button type="button" class="btn ghost" id="close-key" hidden>Close</button>
+          <button type="submit" class="btn primary" id="save-key">Connect</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="markdown.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

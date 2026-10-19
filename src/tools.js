@@ -173,12 +173,14 @@ async function listApps() {
 // ---------- the tools ----------
 
 /**
+ * @typedef {{kind: "trash" | "uninstall", title: string, reason: string, items: {label: string, size?: string}[], total?: string}} Ask
  * @param {object} hooks
- * @param {(what: {title: string, detail: string}) => Promise<boolean>} hooks.confirm  ask the human
+ * @param {(ask: Ask) => Promise<boolean>} hooks.confirm  ask the human
  * @param {(paths: string[]) => Promise<void>} hooks.trash  move things to the system trash
  * @param {(cmd: string) => Promise<void>} hooks.launch  start an app's own uninstaller
+ * @param {(bytes: number) => void} [hooks.onFreed]  report reclaimed space
  */
-function makeTools({ confirm, trash, launch }) {
+function makeTools({ confirm, trash, launch, onFreed = () => {} }) {
   let appCache = /** @type {Awaited<ReturnType<typeof listApps>> | null} */ (null);
 
   const systemInfo = betaZodTool({
@@ -273,13 +275,18 @@ function makeTools({ confirm, trash, launch }) {
         if (PROTECTED.has(resolved)) throw new Error(`${resolved} is a protected folder. Pick things inside it instead.`);
         targets.push({ path: resolved, size: await sizeOf(resolved) });
       }
-      const total = human(targets.reduce((s, t) => s + t.size, 0));
+      const bytes = targets.reduce((s, t) => s + t.size, 0);
+      const total = human(bytes);
       const ok = await confirm({
-        title: `Trash ${targets.length} item(s), ${total}?`,
-        detail: `${reason}\n\n${targets.map((t) => `• ${t.path} (${human(t.size)})`).join("\n")}`,
+        kind: "trash",
+        title: targets.length === 1 ? "Trash 1 item?" : `Trash ${targets.length} items?`,
+        reason,
+        items: targets.map((t) => ({ label: t.path, size: human(t.size) })),
+        total,
       });
       if (!ok) return "The human said no. Do not trash these; move on or ask what they want.";
       await trash(targets.map((t) => t.path));
+      onFreed(bytes);
       return `Moved ${targets.length} item(s) to the trash, freeing about ${total}.`;
     },
   });
@@ -296,11 +303,19 @@ function makeTools({ confirm, trash, launch }) {
       appCache ??= await listApps();
       const app = appCache.find((a) => a.id === id);
       if (!app) throw new Error(`No installed app with id ${id}. Call list_installed_apps first.`);
-      const ok = await confirm({ title: `Uninstall ${app.name}?`, detail: `${reason}\n\n${app.id}${app.size ? ` (${app.size})` : ""}` });
+      const ok = await confirm({
+        kind: "uninstall",
+        title: `Uninstall ${app.name}?`,
+        reason,
+        items: [{ label: app.id, size: app.size }],
+        total: app.size,
+      });
       if (!ok) return `The human wants to keep ${app.name}.`;
 
       if (process.platform === "darwin") {
+        const bytes = await sizeOf(app.id);
         await trash([app.id]);
+        onFreed(bytes);
         return `${app.name} moved to the trash. Its leftovers usually live in ~/Library/Application Support, ~/Library/Caches and ~/Library/Preferences.`;
       }
       if (process.platform === "win32") {

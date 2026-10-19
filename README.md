@@ -1,55 +1,58 @@
-# 🤖🧹 bytevac
+<div align="center">
 
-> A robot vacuum for your computer. It roams your disk, sniffs out junk, and asks before it sucks anything up.
+<img src="build/icon.png" width="96" alt="bytevac icon" />
 
-bytevac is a tiny desktop app with an AI inside. You hit **Start**, and it wanders around your
-home folder looking for the stuff that quietly eats your disk: caches, temp files, ancient
-installers, 4 GB videos you downloaded in 2021, and apps you forgot you had. Then it tells you
-what it found, biggest wins first, and offers to clean it up.
+# bytevac
 
-It's basically an uninstaller and a disk cleaner that can actually *think* about what it's looking at.
+**A robot vacuum for your computer.**
+It roams your disk, sniffs out junk, and asks before it sucks anything up.
 
-```
-🤖 Checking out the place
-📂 Peeking into ~/Library/Caches
-🐘 Hunting big files in ~/Downloads
-📦 Looking at installed apps
+</div>
 
-Found ~23 GB of crumbs:
-  • 9.8 GB  Xcode DerivedData (rebuilds itself, safe to toss)
-  • 6.1 GB  ~/Downloads/*.dmg installers from 2023
-  • 4.2 GB  browser & app caches
-  • 2.9 GB  "Some Game" — not opened in 14 months
+![bytevac home screen](docs/home.png)
 
-Want me to vacuum the first three?
-```
+bytevac is a desktop app with an AI inside. Hit **Full sweep** and a little robot starts rolling
+around your home folder, hunting for the stuff that quietly eats your disk: caches, temp files,
+ancient installers, 4 GB videos you downloaded in 2021, and apps you forgot you had. Then it
+tells you what it found, biggest wins first, and offers to clean it up.
+
+It's an uninstaller and a disk cleaner that can actually *think* about what it's looking at.
+
+| Roaming | Asking first | The report |
+|---|---|---|
+| ![robot roaming](docs/roaming.png) | ![confirm sheet](docs/confirm.png) | ![sweep report](docs/report.png) |
 
 ## 🛡️ It won't eat your homework
 
-- **Nothing happens without you.** Every trash or uninstall pops up a native dialog listing exactly what goes and why. "Keep it" is the default button.
-- **Trash, not delete.** Files go to the system Trash / Recycle Bin, so you can always fish them back out.
+- **Nothing happens without you.** Every trash or uninstall opens a sheet listing exactly what goes, how big it is, and why. **Keep it** has focus, and Esc means no.
+- **Trash, not delete.** Files go to the Trash / Recycle Bin, so you can always fish them back out.
 - **Fenced in.** It can only look inside your home folder, the temp folder, and (on macOS) `/Applications`. Symlinks that point outside are blocked.
 - **Your stuff stays yours.** It won't trash your home, Desktop, Documents, Downloads, Pictures and friends as a whole, and it's told never to call personal files junk on its own.
 
 ## 🚀 Run it
 
-You need [Node.js](https://nodejs.org) 20+ and an [Anthropic API key](https://console.anthropic.com/).
+You need an [Anthropic API key](https://console.anthropic.com/settings/keys). On first launch bytevac asks for it
+and stores it encrypted with your OS keychain. (`ANTHROPIC_API_KEY` in the environment works too.)
+
+**Portable build** (no Node.js needed): run `npm run pack -- win32 x64` (or `darwin arm64`, `linux x64`)
+on any machine, unzip `dist/bytevac-<platform>-<arch>` wherever you like and open `bytevac.exe` / `bytevac.app` / `bytevac`.
+
+**From source:**
 
 ```bash
 git clone https://github.com/MarkArtemyev/bytevac.git
 cd bytevac
 npm install
-export ANTHROPIC_API_KEY=sk-ant-...   # Windows PowerShell: $env:ANTHROPIC_API_KEY="sk-ant-..."
 npm start
 ```
 
-Hit **Start** for a full sweep, or type something like *"only look at my Downloads"* or
-*"what apps haven't I used in a year?"*.
+Then hit a card, or just type: *"only look at my Downloads"*, *"what apps haven't I used in a year?"*.
+It answers in whatever language you write in.
 
 ## 🧠 How it works
 
-It's a thin [Electron](https://www.electronjs.org/) wrapper around Claude using the
-[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) tool runner.
+A thin [Electron](https://www.electronjs.org/) shell around Claude, using the
+[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) tool runner with streaming.
 The model gets six tools and drives the loop itself:
 
 | Tool | What it does |
@@ -63,11 +66,16 @@ The model gets six tools and drives the loop itself:
 
 ```
 src/
-  main.js      Electron window + native confirm dialogs
-  agent.js     the brain: Claude + tool loop + conversation memory
-  tools.js     everything the robot is allowed to do
-  index.html   the floor the robot drives around on
-  renderer.js  chat log + buttons
+  main.js        window, API key storage, the "are you sure?" round trip
+  agent.js       the brain: Claude + streaming tool loop + conversation memory
+  tools.js       everything the robot is allowed to do
+  preload.js     the bridge between the window and the main process
+  ui/
+    index.html   layout: the dock, the stage, the sheets
+    styles.css   the look (Geist, glass, aurora, the roaming robot)
+    app.js       chat feed, live tool trace, stats, confirm sheet, onboarding
+    markdown.js  tiny escape-first Markdown renderer for reports
+scripts/pack.js  portable builds for Windows, macOS and Linux
 ```
 
 `npm run check` type-checks the whole thing.
@@ -77,13 +85,13 @@ src/
 - [ ] Leftover hunting after uninstall (`~/Library/Application Support`, `%APPDATA%`)
 - [ ] Duplicate file finder
 - [ ] "Dust report" history: how much bytevac has vacuumed over time
-- [ ] Packaged builds (`.dmg`, `.exe`, AppImage)
+- [ ] Signed installers (`.dmg`, `.msi`)
 
 ## ⚠️ Disclaimer
 
-bytevac asks before every cleanup, but you're the one clicking **Do it**. Read the dialog.
+bytevac asks before every cleanup, but you're the one clicking **Vacuum it**. Read the sheet.
 No warranty, no refunds, no hard feelings.
 
 ## 📜 License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Geist font by Vercel under the [SIL Open Font License](src/ui/fonts/OFL.txt).
